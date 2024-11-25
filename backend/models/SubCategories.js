@@ -20,6 +20,6 @@ const subCategorySchema = new mongoose.Schema({
   },
 });
 
-const subCategory = mongoose.model("SubCategory", subCategorySchema);
+const SubCategory = mongoose.model("SubCategory", subCategorySchema);
 
-export default subCategory;
+export default SubCategory;

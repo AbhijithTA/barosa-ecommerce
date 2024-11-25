@@ -1,3 +1,4 @@
+import Category from "../models/categories.js";
 import User from "../models/UserModal.js";
 import { validateInputs } from "../validation/inputvalidation.js";
 
@@ -42,7 +43,7 @@ export async function create_New_User(req, res) {
 }
 
 //===============================================================================================================================================================================//
-
+//login
 export async function Login_User(req, res) {
   const { email, password } = req.body;
 
@@ -79,3 +80,10 @@ export async function Login_User(req, res) {
 }
 
 //===============================================================================================================================================================================//
+
+//getting the category and subcategory
+export async function get_category_subcategory(req,res){
+  const categories = await Category.find({}).populate("subCategory");
+
+  return res.status(200).json({categories})
+}
