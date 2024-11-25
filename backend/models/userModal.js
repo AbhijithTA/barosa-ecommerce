@@ -21,6 +21,10 @@ const userSchema = new mongoose.Schema(
       required: true,
       default: false,
     },
+    createdAt:{
+        type:Date,
+        default:Date.now
+    },
     orders: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -38,7 +42,7 @@ const userSchema = new mongoose.Schema(
         }
     ]
   },
-  { timestamps: true }
+  
 );
 
 const User = mongoose.model("User", userSchema);
