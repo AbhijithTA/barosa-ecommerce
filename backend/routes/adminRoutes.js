@@ -13,6 +13,9 @@ router.post("/category-adding", serviceHandler(createCategory));
 router.put("/add-subcategory", serviceHandler(add_subcategory_to_category));
 
 
+//product adding
+
+
 
 
 const adminRoutes = router;

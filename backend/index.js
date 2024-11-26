@@ -8,6 +8,7 @@ import cookieParser from "cookie-parser";
 import database from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import { loginRateLimiter } from "./middlewares/LoginRateLimiter.js";
 
 dotenv.config();
 const port = process.env.PORT || 5000;
@@ -19,6 +20,8 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+app.use(loginRateLimiter);
 
  app.use("/users", userRoutes);
  app.use("/admin", adminRoutes);

@@ -58,7 +58,7 @@ export async function Login_User(req, res) {
   const user = await User.findOne({ email });
 
   if (!user) {
-    return res.status(403).json({ err: "No User Found for this Email" });
+    return res.status(403).json({ err: "Invalid email or password" });
   }
 
   const isPasswordMatch = await bcrypt.compare(password, user.password);
@@ -66,24 +66,76 @@ export async function Login_User(req, res) {
   if (!isPasswordMatch)
     return res.status(403).json({ err: "Password is Mismatched" });
 
+  //generating access token
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expires: "1h",
+    expiresIn: "1h",
   });
 
-  return res
-    .status(200)
-    .json({
-      message: "Login successful",
-      user: { id: user._id, name: user.name, email: user.email },
-      token,
-    });
+  //genertaing refresh token
+  const refreshToken = jwt.sign(
+    { id: user._id },
+    process.env.REFRESH_TOKEN_SECRET,
+    { expiresIn: "7d" }
+  );
+
+  //set securely HTTPonly refresh token cookie
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "Strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+
+  return res.status(200).json({
+    message: "Login successful",
+    user: { id: user._id, name: user.name, email: user.email },
+    token,
+  });
 }
 
 //===============================================================================================================================================================================//
 
 //getting the category and subcategory
-export async function get_category_subcategory(req,res){
+export async function get_category_subcategory(req, res) {
   const categories = await Category.find({}).populate("subCategory");
 
-  return res.status(200).json({categories})
+  return res.status(200).json({ categories });
+}
+
+//===============================================================================================================================================================================//
+
+//Refresh token
+
+export async function refreshToken(req, res) {
+  try {
+    //getting the token from cookies
+    const refreshToken = req.cookies["refreshToken"];
+    if (!refreshToken) {
+      return res.status(401).json({ error: "Refresh token not found" });
+    }
+
+    //verify the refresh token
+    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(403).json({ error: "User not found or unauthorized" });
+    }
+
+    //creating new access token
+    const newAccessToken = jwt.sign(
+      {
+        id: user._id,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
+
+    //sending the new acces token
+    return res.status(200).json({ accessToken: newAccessToken });
+  } catch (err) {
+    console.error("Refresh token error", err);
+    return res.status(403).json({ error: "Invalid or expired refresh token" });
+  }
 }
